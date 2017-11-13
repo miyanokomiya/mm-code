@@ -11,7 +11,7 @@
         </ul>
       </div>
       <div ref="codeWrapper" class="code-wrapper">
-        <pre v-highlightjs="lines.join('\n')"><code :class="`language-${langueageType}`"></code></pre>
+        <pre v-highlightjs="convertedText"><code :class="`language-${langueageType}`"></code></pre>
       </div>
     </div>
   </div>
@@ -35,6 +35,18 @@ export default {
     }
   },
   computed: {
+    convertedText () {
+      const lines = this.lines.concat()
+      const line = lines[this.cursor.row]
+      if (line) {
+        const convertedLine = line.slice(0, this.cursor.column) + '___C___U___R___S___O___R___' + line.slice(this.cursor.column)
+        lines[this.cursor.row] = convertedLine
+      } else {
+        const convertedLine = '___C___U___R___S___O___R___'
+        lines[this.cursor.row] = convertedLine
+      }
+      return lines.join('\n')
+    },
     langueageType () {
       const split = this.fileName.split('.')
       const ex = split[split.length - 1].toLowerCase()
@@ -84,6 +96,10 @@ export default {
     if (this.$refs.lineHighlight.length > 0) {
       this.$refs.lineHighlight[0].style.width = `${width + 30}px`
     }
+
+    const pre = this.$refs.codeWrapper.childNodes[0]
+    const split = pre.innerHTML.split('___C___U___R___S___O___R___')
+    pre.innerHTML = (split[0] ? split[0] : '') + '<span class="cursor"></span>' + (split[1] ? split[1] : '')
   },
   methods: {
     onOpen () {
@@ -200,5 +216,35 @@ $back-color: #272822;
   padding: 0 0 20px 0;
   background-color: $back-color;
   border-radius: 4px;
+
+  .cursor {
+    border-left: 2px solid #fff;
+    margin: 0 -2px 0 0;
+    display: inline-block;
+    height: 1.2rem;
+    vertical-align: middle;
+
+    -webkit-animation:blink 0.7s ease-in-out infinite alternate;
+    -moz-animation:blink 0.7s ease-in-out infinite alternate;
+    animation:blink 0.7s ease-in-out infinite alternate;
+    @-webkit-keyframes blink{
+      0% {opacity:1;}
+      50% {opacity:1;}
+      51% {opacity:0;}
+      100% {opacity:0;}
+    }
+    @-moz-keyframes blink{
+      0% {opacity:1;}
+      50% {opacity:1;}
+      51% {opacity:0;}
+      100% {opacity:0;}
+    }
+    @keyframes blink{
+      0% {opacity:1;}
+      50% {opacity:1;}
+      51% {opacity:0;}
+      100% {opacity:0;}
+    }
+  }
 }
 </style>
