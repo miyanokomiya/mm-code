@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <h3>{{fileName}}</h3>
+    <h3>{{fileName || 'NO FILE'}}</h3>
     <div>
       <div class="line-count-wrapper">
         <ul class="line-count">
@@ -22,6 +22,7 @@ import Vue from 'vue'
 import Prism from 'prismjs'
 
 let websocket = null
+let connectionLoop = null
 const CURSOR_MARK = '___C___U___R___S___O___R___'
 
 export default {
@@ -94,19 +95,7 @@ export default {
     }
   },
   mounted () {
-    websocket = new WebSocket('ws://localhost:8080/ws')
-    websocket.onopen = (evt) => {
-      this.onOpen(evt)
-    }
-    websocket.onclose = (evt) => {
-      this.onClose(evt)
-    }
-    websocket.onmessage = (evt) => {
-      this.onMessage(evt)
-    }
-    websocket.onerror = (evt) => {
-      this.onError(evt)
-    }
+    this.initSocket()
   },
   updated () {
     const width = this.$refs.codeWrapper.clientWidth
@@ -119,6 +108,24 @@ export default {
       const split = html.split(CURSOR_MARK)
       const ret = (split[0] ? split[0] : '') + '<span class="cursor"></span>' + (split[1] ? split[1] : '')
       return ret
+    },
+    initSocket () {
+      if (websocket) {
+        websocket.close()
+      }
+      websocket = new WebSocket('ws://localhost:8080/ws')
+      websocket.onopen = (evt) => {
+        this.onOpen(evt)
+      }
+      websocket.onclose = (evt) => {
+        this.onClose(evt)
+      }
+      websocket.onmessage = (evt) => {
+        this.onMessage(evt)
+      }
+      websocket.onerror = (evt) => {
+        this.onError(evt)
+      }
     },
     onOpen () {
       console.log('CONNECTED')
@@ -169,7 +176,13 @@ export default {
       }
     },
     onError (evt) {
-      console.error(evt)
+      console.error('connection error. mm retry after 5sec.', evt)
+      if (connectionLoop) {
+        clearTimeout(connectionLoop)
+      }
+      connectionLoop = setTimeout(() => {
+        this.initSocket()
+      }, 5000)
     },
     doJoin () {
       websocket.send(
