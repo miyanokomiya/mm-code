@@ -24,6 +24,7 @@ import Prism from 'prismjs'
 let websocket = null
 let connectionLoop = null
 const CURSOR_MARK = '___C___U___R___S___O___R___'
+const CURSOR_TAG = '<span class="cursor"></span>'
 
 export default {
   name: 'this',
@@ -131,13 +132,13 @@ export default {
             }
             tmp += n.length
           }
-          div.children[0].innerHTML = text.slice(0, index - tmp) + '<span class="cursor"></span>' + text.slice(index - tmp)
+          div.children[0].innerHTML = text.slice(0, index - tmp) + CURSOR_TAG + text.slice(index - tmp)
         } else {
-          div.innerHTML = div.innerHTML.slice(0, index) + '<span class="cursor"></span>' + div.innerHTML.slice(index)
+          div.innerHTML = div.innerHTML.slice(0, index) + CURSOR_TAG + div.innerHTML.slice(index)
         }
         ret = sep1 + div.innerHTML + sep4
       } else {
-        ret = (split[0] ? split[0] : '') + '<span class="cursor"></span>' + (split[1] ? split[1] : '')
+        ret = (split[0] ? split[0] : '') + CURSOR_TAG + (split[1] ? split[1] : '')
       }
       return ret
     },
