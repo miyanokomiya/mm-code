@@ -39,14 +39,8 @@ export default {
   },
   computed: {
     prismHtml () {
-      let ret = this.convertedText
-      const type = Prism.languages[this.langueageType]
-      if (type) {
-        const prismHtml = Prism.highlight(this.convertedText, type)
-        ret = this.convertCodeWithCursor(prismHtml)
-      } else {
-        ret = this.convertCodeWithCursor(ret)
-      }
+      const prismHtml = this.filterPrism(this.convertedText)
+      const ret = this.convertCodeWithCursor(prismHtml)
       return ret
     },
     convertedText () {
@@ -104,9 +98,47 @@ export default {
     }
   },
   methods: {
+    filterPrism (text) {
+      let ret = text
+      const type = Prism.languages[this.langueageType]
+      if (type) {
+        ret = Prism.highlight(text, type)
+      }
+      return ret
+    },
     convertCodeWithCursor (html) {
+      let ret = null
       const split = html.split(CURSOR_MARK)
-      const ret = (split[0] ? split[0] : '') + '<span class="cursor"></span>' + (split[1] ? split[1] : '')
+      if (split.length === 2) {
+        const start = split[0].lastIndexOf('>') + 1
+        const end = split[1].indexOf('<')
+        const sep1 = split[0].slice(0, start)
+        const sep2 = split[0].slice(start)
+        const sep3 = split[1].slice(0, end)
+        const sep4 = split[1].slice(end)
+        const target = sep2 + sep3
+        const index = sep2.length
+        const filted = this.filterPrism(target)
+        var div = document.createElement('div')
+        div.innerHTML = filted
+        if (div.children.length > 0) {
+          const text = div.children[0].innerHTML
+          let tmp = 0
+          for (let i = 0; i < div.childNodes.length; i++) {
+            const n = div.childNodes[i]
+            if (n === div.children[0]) {
+              break
+            }
+            tmp += n.length
+          }
+          div.children[0].innerHTML = text.slice(0, index - tmp) + '<span class="cursor"></span>' + text.slice(index - tmp)
+        } else {
+          div.innerHTML = div.innerHTML.slice(0, index) + '<span class="cursor"></span>' + div.innerHTML.slice(index)
+        }
+        ret = sep1 + div.innerHTML + sep4
+      } else {
+        ret = (split[0] ? split[0] : '') + '<span class="cursor"></span>' + (split[1] ? split[1] : '')
+      }
       return ret
     },
     initSocket () {
