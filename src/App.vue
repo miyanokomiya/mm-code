@@ -11,7 +11,7 @@
         </ul>
       </div>
       <div ref="codeWrapper" class="code-wrapper">
-        <pre v-highlightjs="convertedText"><code :class="`language-${langueageType}`"></code></pre>
+        <pre :class="`language-${langueageType}`"><code v-html="prismHtml" :class="`language-${langueageType}`"></code></pre>
       </div>
     </div>
   </div>
@@ -19,14 +19,16 @@
 
 <script>
 import Vue from 'vue'
+import Prism from 'prismjs'
 
 let websocket = null
+const CURSOR_MARK = '___C___U___R___S___O___R___'
 
 export default {
   name: 'this',
   data () {
     return {
-      fileName: 'no name',
+      fileName: '',
       lines: [],
       cursor: {
         row: 0,
@@ -35,14 +37,25 @@ export default {
     }
   },
   computed: {
+    prismHtml () {
+      let ret = this.convertedText
+      const type = Prism.languages[this.langueageType]
+      if (type) {
+        const prismHtml = Prism.highlight(this.convertedText, type)
+        ret = this.convertCodeWithCursor(prismHtml)
+      } else {
+        ret = this.convertCodeWithCursor(ret)
+      }
+      return ret
+    },
     convertedText () {
       const lines = this.lines.concat()
       const line = lines[this.cursor.row]
       if (line) {
-        const convertedLine = line.slice(0, this.cursor.column) + '___C___U___R___S___O___R___' + line.slice(this.cursor.column)
+        const convertedLine = line.slice(0, this.cursor.column) + CURSOR_MARK + line.slice(this.cursor.column)
         lines[this.cursor.row] = convertedLine
       } else {
-        const convertedLine = '___C___U___R___S___O___R___'
+        const convertedLine = CURSOR_MARK
         lines[this.cursor.row] = convertedLine
       }
       return lines.join('\n')
@@ -72,7 +85,11 @@ export default {
         case 'ts':
           return 'typescript'
         default:
-          return ex
+          if (ex) {
+            return ex
+          } else {
+            return 'bash'
+          }
       }
     }
   },
@@ -96,12 +113,13 @@ export default {
     if (this.$refs.lineHighlight.length > 0) {
       this.$refs.lineHighlight[0].style.width = `${width + 30}px`
     }
-
-    const pre = this.$refs.codeWrapper.childNodes[0]
-    const split = pre.innerHTML.split('___C___U___R___S___O___R___')
-    pre.innerHTML = (split[0] ? split[0] : '') + '<span class="cursor"></span>' + (split[1] ? split[1] : '')
   },
   methods: {
+    convertCodeWithCursor (html) {
+      const split = html.split(CURSOR_MARK)
+      const ret = (split[0] ? split[0] : '') + '<span class="cursor"></span>' + (split[1] ? split[1] : '')
+      return ret
+    },
     onOpen () {
       console.log('CONNECTED')
       this.doJoin()
@@ -224,9 +242,9 @@ $back-color: #272822;
     height: 1.2rem;
     vertical-align: middle;
 
-    -webkit-animation:blink 0.7s ease-in-out infinite alternate;
-    -moz-animation:blink 0.7s ease-in-out infinite alternate;
-    animation:blink 0.7s ease-in-out infinite alternate;
+    -webkit-animation:blink 0.5s ease-in-out infinite alternate;
+    -moz-animation:blink 0.5s ease-in-out infinite alternate;
+    animation:blink 0.5s ease-in-out infinite alternate;
     @-webkit-keyframes blink{
       0% {opacity:1;}
       50% {opacity:1;}

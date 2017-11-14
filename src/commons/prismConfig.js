@@ -1,0 +1,12 @@
+import 'prismjs/themes/prism-okaidia.css'
+
+import 'prismjs'
+import 'prismjs/components/prism-scss'
+import 'prismjs/components/prism-sass'
+import 'prismjs/components/prism-go'
+import 'prismjs/components/prism-json'
+import 'prismjs/components/prism-ruby'
+import 'prismjs/components/prism-yaml'
+import 'prismjs/components/prism-coffeescript'
+import 'prismjs/components/prism-typescript'
+import 'prismjs/components/prism-bash'
