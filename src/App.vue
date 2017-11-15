@@ -146,7 +146,7 @@ export default {
       if (websocket) {
         websocket.close()
       }
-      websocket = new WebSocket('ws://localhost:8080/ws')
+      websocket = new WebSocket('ws://localhost:8090/ws')
       websocket.onopen = (evt) => {
         this.onOpen(evt)
       }

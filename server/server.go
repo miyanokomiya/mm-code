@@ -32,7 +32,7 @@ func Run() {
 	m.HandleConnect(connect)
 	m.HandleDisconnect(disConnect)
 
-	fmt.Println(http.ListenAndServe(":8080", router))
+	fmt.Println(http.ListenAndServe(":8090", router))
 }
 
 func readAssets(path string) (string, error) {
