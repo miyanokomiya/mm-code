@@ -6,12 +6,16 @@
   "private": true,
   "scripts": {
     "dev": "node build/dev-server.js",
-    "start": "npm run dev",
-    "build": "node build/build.js",
+    "start":
+      "go-bindata-assetfs -debug=true -pkg server dist/... && npm run go-move && npm run dev",
+    "build": "node build/build.js && npm run go-build",
     "unit":
       "cross-env BABEL_ENV=test karma start test/unit/karma.conf.js --single-run",
     "test": "npm run unit",
-    "lint": "eslint --ext .js,.vue src test/unit/specs"
+    "lint": "eslint --ext .js,.vue src test/unit/specs",
+    "go-build":
+      "go-bindata-assetfs -pkg server dist/... && npm run go-move && go build",
+    "go-move": "mv -f ./bindata_assetfs.go ./server/bindata_assetfs.go"
   },
   "dependencies": {
     "prismjs": "^1.8.4",
