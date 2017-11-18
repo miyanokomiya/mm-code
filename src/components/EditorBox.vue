@@ -5,7 +5,7 @@
         <li v-for="(l, i) in lines" :key="i">
           <span ref="lineHighlight" v-if="i === cursor.row" class="line-highlight"></span>
           <span ref="cursor" class="cursor" v-if="i === cursor.row"></span>
-          <span>{{i}}</span>
+          <span>{{i + 1}}</span>
         </li>
       </ul>
     </div>
@@ -37,6 +37,10 @@ export default {
         type: Number,
         default: 0
       }
+    },
+    autoScroll: {
+      type: Boolean,
+      default: true
     }
   },
   computed: {
@@ -62,6 +66,9 @@ export default {
         this.$refs.cursor[0].style.left = `${13 + this.cursor.column * 9.6}px`
       }
     }
+    if (this.autoScroll) {
+      this.adjustScroll()
+    }
   },
   methods: {
     filterPrism (text) {
@@ -71,6 +78,16 @@ export default {
         ret = Prism.highlight(text, type)
       }
       return ret
+    },
+    adjustScroll () {
+      if (this.$refs.editorWrapper) {
+        if (this.$refs.lineHighlight.length > 0) {
+          const lineHighlight = this.$refs.lineHighlight[0]
+          const parent = lineHighlight.parentElement
+          const top = parent.offsetTop
+          this.$refs.editorWrapper.scrollTop = top - 200
+        }
+      }
     }
   }
 }

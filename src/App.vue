@@ -2,6 +2,7 @@
   <div id="app">
     <h3>{{activeEditorName || 'NO FILE'}}</h3>
     <EditorBox
+      class="editor-box"
       v-if="activeEditor"
       :fileName="activeEditor.fileName"
       :lines="activeEditor.lines"
@@ -143,5 +144,9 @@ export default {
   text-align: center;
   color: #2c3e50;
   margin-top: 20px;
+}
+
+.editor-box {
+  height: 300px;
 }
 </style>
