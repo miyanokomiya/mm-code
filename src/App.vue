@@ -1,81 +1,105 @@
 <template>
-  <v-app id="app" v-resize="onResize">
-    <v-navigation-drawer
-      fixed
-      v-model="drawer"
-      app
-    >
-      <v-list dense>
-        <v-list-tile @click="drawer = false">
-          <v-list-tile-action>
-            <v-icon>arrow_back</v-icon>
-          </v-list-tile-action>
-          <v-list-tile-content>
-            <!-- <v-list-tile-title>Home</v-list-tile-title> -->
-          </v-list-tile-content>
-        </v-list-tile>
-        <v-list-tile @click="">
-          <v-list-tile-action>
-            <v-icon>settings</v-icon>
-          </v-list-tile-action>
-          <v-list-tile-content>
-            <v-list-tile-title>Settings</v-list-tile-title>
-          </v-list-tile-content>
-        </v-list-tile>
-        <v-list-tile @click="">
-          <v-list-tile-action>
-          </v-list-tile-action>
-          <v-list-tile-content>
-            <v-list-tile-title>
-              <v-checkbox
-                label="Auto Chase"
-                v-model="autoChase"
+  <div id="app">
+    <v-app id="inspire" v-resize="onResize">
+      <v-navigation-drawer
+        fixed
+        v-model="drawer"
+        app
+      >
+        <v-list dense>
+          <v-list-tile @click="drawer = false">
+            <v-list-tile-action>
+              <v-icon>arrow_back</v-icon>
+            </v-list-tile-action>
+          </v-list-tile>
+          <v-list-tile @click="">
+            <v-list-tile-action>
+              <v-icon>settings</v-icon>
+            </v-list-tile-action>
+            <v-list-tile-content>
+              <v-list-tile-title>Settings</v-list-tile-title>
+            </v-list-tile-content>
+          </v-list-tile>
+          <v-list-tile @click="">
+            <v-list-tile-action>
+            </v-list-tile-action>
+            <v-list-tile-content>
+              <v-list-tile-title>
+                <v-checkbox
+                  label="Chase File"
+                  v-model="isChaseFile"
+                />
+              </v-list-tile-title>
+            </v-list-tile-content>
+          </v-list-tile>
+          <v-list-tile @click="">
+            <v-list-tile-action>
+            </v-list-tile-action>
+            <v-list-tile-content>
+              <v-list-tile-title>
+                <v-checkbox
+                  label="Chase Scroll"
+                  v-model="isChaseCursor"
+                />
+              </v-list-tile-title>
+            </v-list-tile-content>
+          </v-list-tile>
+        </v-list>
+      </v-navigation-drawer>
+      <v-toolbar color="indigo" dark fixed app>
+        <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
+        <v-toolbar-title>
+          <!-- {{sliceFileName(activeEditorName)}} -->
+          <v-menu offset-y>
+            <v-btn color="primary" dark slot="activator">
+              {{sliceFileName(viewEditorName)}}
+              <v-icon>arrow_drop_down</v-icon>
+            </v-btn>
+            <v-list>
+              <v-list-tile v-for="key in editorKeyList.concat().sort()" :key="key" @click="viewEditorName = key" v-if="key !== viewEditorName">
+                <v-list-tile-title>{{sliceFileName(key)}}</v-list-tile-title>
+              </v-list-tile>
+            </v-list>
+          </v-menu>
+        </v-toolbar-title>
+      </v-toolbar>
+      <v-content>
+        <v-tabs v-model="viewEditorTabKey" :scrollable="false">
+          <v-tabs-bar class="cyan" dark>
+            <v-tabs-item
+              v-for="key in editorKeyList"
+              :key="key"
+              :href="'#editor_' + key"
+              ripple
+            >
+              {{sliceFileName(key)}}
+            </v-tabs-item>
+            <v-tabs-slider color="yellow"></v-tabs-slider>
+          </v-tabs-bar>
+          <v-tabs-items>
+            <v-tabs-content
+              v-for="key in editorKeyList"
+              :key="key"
+              :id="`editor_${key}`"
+            >
+              <EditorBox
+                :ref="editors[key].fileName"
+                class="editor-box"
+                :style="{height: `${editorHeight}px`}"
+                :fileName="editors[key].fileName"
+                :lines="editors[key].lines"
+                :cursor="editors[key].cursor"
+                :autoChase="isChaseCursor"
               />
-            </v-list-tile-title>
-          </v-list-tile-content>
-        </v-list-tile>
-      </v-list>
-    </v-navigation-drawer>
-    <v-toolbar color="indigo" dark fixed app>
-      <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
-      <v-toolbar-title>{{sliceFileName(activeEditorName)}}</v-toolbar-title>
-    </v-toolbar>
-    <v-content>
-      <v-tabs grow v-model="viewEditorTabKey">
-        <v-tabs-bar class="cyan" dark>
-          <v-tabs-item
-            v-for="key in editorKeyList"
-            :key="key"
-            :href="'#editor_' + key"
-            ripple
-          >
-            {{sliceFileName(key)}}
-          </v-tabs-item>
-          <v-tabs-slider color="yellow"></v-tabs-slider>
-        </v-tabs-bar>
-        <v-tabs-items>
-          <v-tabs-content
-            v-for="key in editorKeyList"
-            :key="key"
-            :id="`editor_${key}`"
-          >
-            <EditorBox
-              :ref="editors[key].fileName"
-              class="editor-box"
-              :style="{height: `${editorHeight}px`}"
-              :fileName="editors[key].fileName"
-              :lines="editors[key].lines"
-              :cursor="editors[key].cursor"
-              :autoChase="autoChase"
-            />
-          </v-tabs-content>
-        </v-tabs-items>
-      </v-tabs>
-    </v-content>
-    <!-- <v-footer color="indigo" app>
-      <span class="white--text">&copy; 2017</span>
-    </v-footer> -->
-  </v-app>
+            </v-tabs-content>
+          </v-tabs-items>
+        </v-tabs>
+      </v-content>
+      <!-- <v-footer color="indigo" app>
+        <span class="white--text">&copy; 2017</span>
+      </v-footer> -->
+    </v-app>
+  </div>
 </template>
 
 <script>
@@ -96,7 +120,10 @@ export default {
       drawer: false,
       viewEditorName: null,
       editorHeight: 300,
-      autoChase: true
+      settings: {
+        isChaseFile: true,
+        isChaseCursor: true
+      }
     }
   },
   computed: {
@@ -111,20 +138,45 @@ export default {
         return this.viewEditorName ? `editor_${this.viewEditorName}` : null
       },
       set (val) {
-        this.viewEditorName = val.slice(7)
+        if (typeof val === 'string') {
+          this.viewEditorName = val ? val.slice(7) : null
+        }
+      }
+    },
+    isChaseFile: {
+      get () {
+        return this.settings.isChaseFile
+      },
+      set (val) {
+        this.settings.isChaseFile = val
+      }
+    },
+    isChaseCursor: {
+      get () {
+        return this.settings.isChaseCursor
+      },
+      set (val) {
+        this.settings.isChaseCursor = val
       }
     }
   },
   watch: {
-    autoChase (from, to) {
-      localStorage.setItem('settings', {to})
+    settings: {
+      handler (to, from) {
+        localStorage.setItem('settings', JSON.stringify(to))
+      },
+      deep: true
     }
   },
   mounted () {
     this.initSocket()
     const settings = localStorage.getItem('settings')
     if (settings) {
-      this.autoChase = settings.autoChase
+      try {
+        this.settings = JSON.parse(settings)
+      } catch (e) {
+        console.log('Failed to load settings from local-strage.')
+      }
     }
   },
   methods: {
@@ -172,21 +224,23 @@ export default {
       if (type === 'say') {
       } else if (type === 'text') {
         // ファイル取得
-        this.activeEditorName = jsonData.fileName
-        if (!this.viewEditorName || this.autoChase) {
-          this.viewEditorName = this.activeEditorName
-        }
-        Vue.set(this.editors, jsonData.fileName, {
-          fileName: jsonData.fileName,
-          lines: jsonData.text.split('\n'),
-          cursor: {
-            row: 0,
-            column: 0
+        if (jsonData.fileName) {
+          this.activeEditorName = jsonData.fileName
+          if (!this.viewEditorName || this.settings.isChaseFile) {
+            this.viewEditorName = this.activeEditorName
           }
-        })
+          Vue.set(this.editors, jsonData.fileName, {
+            fileName: jsonData.fileName,
+            lines: jsonData.text.split('\n'),
+            cursor: {
+              row: 0,
+              column: 0
+            }
+          })
+        }
       } else if (type === 'line') {
         // 1行更新
-        if (this.autoChase) {
+        if (this.settings.isChaseFile) {
           this.viewEditorName = this.activeEditorName
         }
         const editor = this.activeEditor
@@ -197,7 +251,7 @@ export default {
         }
       } else if (type === 'updates') {
         // 複数行更新
-        if (this.autoChase) {
+        if (this.settings.isChaseFile) {
           this.viewEditorName = this.activeEditorName
         }
         const editor = this.activeEditor
@@ -256,5 +310,9 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
+}
+
+.tabs__item, .btn__content {
+  text-transform: none;
 }
 </style>
