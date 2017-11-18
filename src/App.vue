@@ -6,27 +6,39 @@
       app
     >
       <v-list dense>
-        <v-list-tile @click="">
+        <v-list-tile @click="drawer = false">
           <v-list-tile-action>
-            <v-icon>home</v-icon>
+            <v-icon>arrow_back</v-icon>
           </v-list-tile-action>
           <v-list-tile-content>
-            <v-list-tile-title>Home</v-list-tile-title>
+            <!-- <v-list-tile-title>Home</v-list-tile-title> -->
           </v-list-tile-content>
         </v-list-tile>
         <v-list-tile @click="">
           <v-list-tile-action>
-            <v-icon>contact_mail</v-icon>
+            <v-icon>settings</v-icon>
           </v-list-tile-action>
           <v-list-tile-content>
-            <v-list-tile-title>Contact</v-list-tile-title>
+            <v-list-tile-title>Settings</v-list-tile-title>
+          </v-list-tile-content>
+        </v-list-tile>
+        <v-list-tile @click="">
+          <v-list-tile-action>
+          </v-list-tile-action>
+          <v-list-tile-content>
+            <v-list-tile-title>
+              <v-checkbox
+                label="Auto Chase"
+                v-model="autoChase"
+              />
+            </v-list-tile-title>
           </v-list-tile-content>
         </v-list-tile>
       </v-list>
     </v-navigation-drawer>
     <v-toolbar color="indigo" dark fixed app>
       <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
-      <v-toolbar-title>Application</v-toolbar-title>
+      <v-toolbar-title>{{sliceFileName(activeEditorName)}}</v-toolbar-title>
     </v-toolbar>
     <v-content>
       <v-tabs grow v-model="viewEditorTabKey">
@@ -37,7 +49,7 @@
             :href="'#editor_' + key"
             ripple
           >
-            {{key.slice(key.lastIndexOf('/') + 1)}}
+            {{sliceFileName(key)}}
           </v-tabs-item>
           <v-tabs-slider color="yellow"></v-tabs-slider>
         </v-tabs-bar>
@@ -103,10 +115,26 @@ export default {
       }
     }
   },
+  watch: {
+    autoChase (from, to) {
+      localStorage.setItem('settings', {to})
+    }
+  },
   mounted () {
     this.initSocket()
+    const settings = localStorage.getItem('settings')
+    if (settings) {
+      this.autoChase = settings.autoChase
+    }
   },
   methods: {
+    sliceFileName (name) {
+      if (name) {
+        return name.slice(name.lastIndexOf('/') + 1)
+      } else {
+        return null
+      }
+    },
     onResize () {
       const height = window.innerHeight - (56 + 48)
       this.editorHeight = height
@@ -143,10 +171,11 @@ export default {
 
       if (type === 'say') {
       } else if (type === 'text') {
+        // ファイル取得
+        this.activeEditorName = jsonData.fileName
         if (!this.viewEditorName || this.autoChase) {
           this.viewEditorName = this.activeEditorName
         }
-        this.activeEditorName = jsonData.fileName
         Vue.set(this.editors, jsonData.fileName, {
           fileName: jsonData.fileName,
           lines: jsonData.text.split('\n'),
@@ -227,8 +256,5 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-}
-
-.editor-box {
 }
 </style>
