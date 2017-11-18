@@ -11,7 +11,7 @@
         </ul>
       </div>
       <div ref="codeWrapper" class="code-wrapper">
-        <pre :class="`language-${langueageType}`"><code v-html="prismHtml" :class="`language-${langueageType}`"></code></pre>
+        <pre :class="`language-${languageType}`"><code v-html="prismHtml" :class="`language-${languageType}`"></code></pre>
       </div>
     </div>
   </div>
@@ -20,10 +20,11 @@
 <script>
 import Vue from 'vue'
 import Prism from 'prismjs'
+import {languageType, unescapeHTML} from './commons/prismConfig'
 
 let websocket = null
 let connectionLoop = null
-const CURSOR_MARK = '___C___U___R___S___O___R___'
+const CURSOR_MARK = `___C___U___R_${(new Date()).getMilliseconds()}_S___O___R___`
 const CURSOR_TAG = '<span class="cursor"></span>'
 
 export default {
@@ -56,37 +57,8 @@ export default {
       }
       return lines.join('\n')
     },
-    langueageType () {
-      const split = this.fileName.split('.')
-      const ex = split[split.length - 1].toLowerCase()
-      switch (ex) {
-        case 'js':
-          return 'javascript'
-        case 'html':
-          return 'markup'
-        case 'md':
-          return 'markdown'
-        case 'rb':
-          return 'ruby'
-        case 'yml':
-          return 'yaml'
-        case 'css':
-          return 'css'
-        case 'scss':
-          return 'scss'
-        case 'go':
-          return 'go'
-        case 'json':
-          return 'json'
-        case 'ts':
-          return 'typescript'
-        default:
-          if (ex) {
-            return ex
-          } else {
-            return 'bash'
-          }
-      }
+    languageType () {
+      return languageType(this.fileName)
     }
   },
   mounted () {
@@ -101,7 +73,7 @@ export default {
   methods: {
     filterPrism (text) {
       let ret = text
-      const type = Prism.languages[this.langueageType]
+      const type = Prism.languages[this.languageType]
       if (type) {
         ret = Prism.highlight(text, type)
       }
@@ -117,28 +89,49 @@ export default {
         const sep2 = split[0].slice(start)
         const sep3 = split[1].slice(0, end)
         const sep4 = split[1].slice(end)
-        const target = sep2 + sep3
+        const target = unescapeHTML(sep2 + sep3)
         const index = sep2.length
         const filted = this.filterPrism(target)
         var div = document.createElement('div')
         div.innerHTML = filted
+
         if (div.children.length > 0) {
-          const text = div.children[0].innerHTML
-          let tmp = 0
-          for (let i = 0; i < div.childNodes.length; i++) {
-            const n = div.childNodes[i]
-            if (n === div.children[0]) {
-              break
-            }
-            tmp += n.length
-          }
-          div.children[0].innerHTML = text.slice(0, index - tmp) + CURSOR_TAG + text.slice(index - tmp)
+          // const tmp = this.countBeforeCursor(div)
+          // const text = div.children[0].innerHTML
+          // div.children[0].innerHTML = text.slice(0, index - tmp) + CURSOR_TAG + text.slice(index - tmp)
         } else {
           div.innerHTML = div.innerHTML.slice(0, index) + CURSOR_TAG + div.innerHTML.slice(index)
         }
         ret = sep1 + div.innerHTML + sep4
       } else {
         ret = (split[0] ? split[0] : '') + CURSOR_TAG + (split[1] ? split[1] : '')
+      }
+      return ret
+    },
+    countInnerHtml (div) {
+      let tmp = 0
+      for (let i = 0; i < div.childNodes.length; i++) {
+        const n = div.childNodes[i]
+        if (n === div.children[0]) {
+          break
+        }
+        tmp += n.length
+      }
+      return tmp
+    },
+    countBeforeCursor (div) {
+      let ret = 0
+      if (div.children.length === 0) {
+        ret = this.countInnerHtml(div)
+      } else {
+        for (let i = 0; i < div.children.length; i++) {
+          const child = div.children[i]
+          if (child.children.length > 0) {
+            ret = this.countInnerHtml(child)
+          } else {
+            ret = this.countInnerHtml(div)
+          }
+        }
       }
       return ret
     },
