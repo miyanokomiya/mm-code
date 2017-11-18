@@ -6,6 +6,7 @@
         <ul class="line-count">
           <li v-for="(l, i) in lines" :key="i">
             <span ref="lineHighlight" v-if="i === cursor.row" class="line-highlight"></span>
+            <span ref="cursor" class="cursor" v-if="i === cursor.row"></span>
             <span>{{i}}</span>
           </li>
         </ul>
@@ -20,12 +21,10 @@
 <script>
 import Vue from 'vue'
 import Prism from 'prismjs'
-import {languageType, unescapeHTML} from './commons/prismConfig'
+import {languageType} from './commons/prismConfig'
 
 let websocket = null
 let connectionLoop = null
-const CURSOR_MARK = `___C___U___R_${(new Date()).getMilliseconds()}_S___O___R___`
-const CURSOR_TAG = '<span class="cursor"></span>'
 
 export default {
   name: 'this',
@@ -42,20 +41,10 @@ export default {
   computed: {
     prismHtml () {
       const prismHtml = this.filterPrism(this.convertedText)
-      const ret = this.convertCodeWithCursor(prismHtml)
-      return ret
+      return prismHtml
     },
     convertedText () {
-      const lines = this.lines.concat()
-      const line = lines[this.cursor.row]
-      if (line) {
-        const convertedLine = line.slice(0, this.cursor.column) + CURSOR_MARK + line.slice(this.cursor.column)
-        lines[this.cursor.row] = convertedLine
-      } else {
-        const convertedLine = CURSOR_MARK
-        lines[this.cursor.row] = convertedLine
-      }
-      return lines.join('\n')
+      return this.lines.join('\n')
     },
     languageType () {
       return languageType(this.fileName)
@@ -69,6 +58,10 @@ export default {
     if (this.$refs.lineHighlight.length > 0) {
       this.$refs.lineHighlight[0].style.width = `${width + 30}px`
     }
+    if (this.$refs.cursor.length > 0) {
+      // フォントサイズとパディングを考慮して絶妙な位置に調整
+      this.$refs.cursor[0].style.left = `${16 + this.cursor.column * 9.6}px`
+    }
   },
   methods: {
     filterPrism (text) {
@@ -76,62 +69,6 @@ export default {
       const type = Prism.languages[this.languageType]
       if (type) {
         ret = Prism.highlight(text, type)
-      }
-      return ret
-    },
-    convertCodeWithCursor (html) {
-      let ret = null
-      const split = html.split(CURSOR_MARK)
-      if (split.length === 2) {
-        const start = split[0].lastIndexOf('>') + 1
-        const end = split[1].indexOf('<')
-        const sep1 = split[0].slice(0, start)
-        const sep2 = split[0].slice(start)
-        const sep3 = split[1].slice(0, end)
-        const sep4 = split[1].slice(end)
-        const target = unescapeHTML(sep2 + sep3)
-        const index = sep2.length
-        const filted = this.filterPrism(target)
-        var div = document.createElement('div')
-        div.innerHTML = filted
-
-        if (div.children.length > 0) {
-          // const tmp = this.countBeforeCursor(div)
-          // const text = div.children[0].innerHTML
-          // div.children[0].innerHTML = text.slice(0, index - tmp) + CURSOR_TAG + text.slice(index - tmp)
-        } else {
-          div.innerHTML = div.innerHTML.slice(0, index) + CURSOR_TAG + div.innerHTML.slice(index)
-        }
-        ret = sep1 + div.innerHTML + sep4
-      } else {
-        ret = (split[0] ? split[0] : '') + CURSOR_TAG + (split[1] ? split[1] : '')
-      }
-      return ret
-    },
-    countInnerHtml (div) {
-      let tmp = 0
-      for (let i = 0; i < div.childNodes.length; i++) {
-        const n = div.childNodes[i]
-        if (n === div.children[0]) {
-          break
-        }
-        tmp += n.length
-      }
-      return tmp
-    },
-    countBeforeCursor (div) {
-      let ret = 0
-      if (div.children.length === 0) {
-        ret = this.countInnerHtml(div)
-      } else {
-        for (let i = 0; i < div.children.length; i++) {
-          const child = div.children[i]
-          if (child.children.length > 0) {
-            ret = this.countInnerHtml(child)
-          } else {
-            ret = this.countInnerHtml(div)
-          }
-        }
       }
       return ret
     },
@@ -269,39 +206,42 @@ $back-color: #272822;
   border-bottom: 2px solid rgba(255, 255, 255, 0.8);
 }
 
+
+.cursor {
+  float: right;
+  position: relative;
+  border-left: 2px solid #fff;
+  margin: 0 -2px 0 0;
+  display: inline-block;
+  height: 1.2rem;
+  vertical-align: middle;
+
+  -webkit-animation:blink 0.5s ease-in-out infinite alternate;
+  -moz-animation:blink 0.5s ease-in-out infinite alternate;
+  animation:blink 0.5s ease-in-out infinite alternate;
+  @-webkit-keyframes blink{
+    0% {opacity:1;}
+    50% {opacity:1;}
+    51% {opacity:0;}
+    100% {opacity:0;}
+  }
+  @-moz-keyframes blink{
+    0% {opacity:1;}
+    50% {opacity:1;}
+    51% {opacity:0;}
+    100% {opacity:0;}
+  }
+  @keyframes blink{
+    0% {opacity:1;}
+    50% {opacity:1;}
+    51% {opacity:0;}
+    100% {opacity:0;}
+  }
+}
+
 .code-wrapper {
   padding: 0 0 20px 0;
   background-color: $back-color;
   border-radius: 4px;
-
-  .cursor {
-    border-left: 2px solid #fff;
-    margin: 0 -2px 0 0;
-    display: inline-block;
-    height: 1.2rem;
-    vertical-align: middle;
-
-    -webkit-animation:blink 0.5s ease-in-out infinite alternate;
-    -moz-animation:blink 0.5s ease-in-out infinite alternate;
-    animation:blink 0.5s ease-in-out infinite alternate;
-    @-webkit-keyframes blink{
-      0% {opacity:1;}
-      50% {opacity:1;}
-      51% {opacity:0;}
-      100% {opacity:0;}
-    }
-    @-moz-keyframes blink{
-      0% {opacity:1;}
-      50% {opacity:1;}
-      51% {opacity:0;}
-      100% {opacity:0;}
-    }
-    @keyframes blink{
-      0% {opacity:1;}
-      50% {opacity:1;}
-      51% {opacity:0;}
-      100% {opacity:0;}
-    }
-  }
 }
 </style>
