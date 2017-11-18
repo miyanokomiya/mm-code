@@ -17,7 +17,8 @@
   "dependencies": {
     "prismjs": "^1.8.4",
     "ress": "^1.2.2",
-    "vue": "^2.5.2"
+    "vue": "^2.5.2",
+    "vuetify": "^0.17.1"
   },
   "devDependencies": {
     "autoprefixer": "^7.1.2",

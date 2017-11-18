@@ -2,14 +2,14 @@
   <div ref="editorWrapper" class="editor-wrapper">
     <div class="line-count-wrapper">
       <ul class="line-count">
-        <li v-for="(l, i) in lines" :key="i">
+        <li class="line" v-for="(l, i) in lines" :key="i">
           <span ref="lineHighlight" v-if="i === cursor.row" class="line-highlight"></span>
           <span ref="cursor" class="cursor" v-if="i === cursor.row"></span>
           <span>{{i + 1}}</span>
         </li>
       </ul>
     </div>
-    <pre :class="`language-${languageType}`"><code v-html="prismHtml" :class="`language-${languageType}`"></code></pre>
+    <pre :class="`language-${languageType}`"><code v-html="prismHtml" :class="`language-${languageType} hljs`"></code></pre>
   </div>
 </template>
 
@@ -38,7 +38,7 @@ export default {
         default: 0
       }
     },
-    autoScroll: {
+    autoChase: {
       type: Boolean,
       default: true
     }
@@ -63,10 +63,10 @@ export default {
       }
       if (this.$refs.cursor.length > 0) {
         // フォントサイズとパディングを考慮して絶妙な位置に調整
-        this.$refs.cursor[0].style.left = `${13 + this.cursor.column * 9.6}px`
+        this.$refs.cursor[0].style.left = `${15 + this.cursor.column * 9.6}px`
       }
     }
-    if (this.autoScroll) {
+    if (this.autoChase) {
       this.adjustScroll()
     }
   },
@@ -85,7 +85,18 @@ export default {
           const lineHighlight = this.$refs.lineHighlight[0]
           const parent = lineHighlight.parentElement
           const top = parent.offsetTop
-          this.$refs.editorWrapper.scrollTop = top - 200
+          const current = this.$refs.editorWrapper.scrollTop
+          const viewHeight = this.$refs.editorWrapper.offsetHeight
+          const noMoveRange = viewHeight * 2 / 5
+          const adjustRange = viewHeight * 3 / 4
+          const nextTop = top - noMoveRange
+          const dif = nextTop - current
+          if (Math.abs(dif) < noMoveRange / 2) {
+          } else if (Math.abs(nextTop - current) < adjustRange / 2) {
+            this.$refs.editorWrapper.scrollTop += (dif / Math.abs(dif)) * 22
+          } else {
+            this.$refs.editorWrapper.scrollTop = nextTop
+          }
         }
       }
     }
@@ -107,12 +118,17 @@ $back-color: #272822;
   }
   code[class*="language-"] {
     padding-right: 24px;
+    background-color: inherit;
+    font-size: 16px;
+    font-weight: 100;
+    letter-spacing: 0;
+    box-shadow: none;
   }
 }
 
 .line-count-wrapper {
   float: left;
-  padding: 20px 0 0 0;
+  padding: 18px 0 0 0;
   color: #FFF;
   border-radius: 4px;
 }
@@ -121,15 +137,17 @@ $back-color: #272822;
   list-style: none;
   padding: 0;
   margin: 0;
+  font-size: 16px;
 }
 
-.line-count li {
+.line-count li.line {
   width: 30px;
   text-align: right;
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   line-height: 1.5;
-  height: 1.5rem;
+  height: 24px;
   position: relative;
+  margin-top: 0;
 }
 
 .line-highlight {
@@ -137,21 +155,20 @@ $back-color: #272822;
   position: absolute;
   height: 100%;
   width: 300px;
-  top: -6px;
+  top: -2px;
   left: 0;
   pointer-events: none;
   // background-color: rgba(0, 0, 255, 0.2);
   border-bottom: 2px solid rgba(255, 255, 255, 0.8);
 }
 
-
 .cursor {
   float: right;
   position: relative;
   border-left: 2px solid #fff;
-  margin: 0 -2px 0 0;
+  margin: -2px -2px 0 0;
   display: inline-block;
-  height: 1rem;
+  height: 100%;
   vertical-align: middle;
 
   -webkit-animation:blink 0.5s ease-in-out infinite alternate;

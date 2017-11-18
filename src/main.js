@@ -5,6 +5,10 @@ import App from './App'
 
 import 'ress'
 import './commons/prismConfig'
+import Vuetify from 'vuetify'
+require('vuetify/dist/vuetify.min.css')
+
+Vue.use(Vuetify)
 
 Vue.config.productionTip = false
 
