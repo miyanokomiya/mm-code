@@ -76,28 +76,18 @@
             </v-tabs-item>
             <v-tabs-slider color="yellow"></v-tabs-slider>
           </v-tabs-bar>
-          <v-tabs-items>
-            <v-tabs-content
-              v-for="key in editorKeyList"
-              :key="key"
-              :id="`editor_${key}`"
-            >
-              <EditorBox
-                :ref="editors[key].fileName"
-                class="editor-box"
-                :style="{height: `${editorHeight}px`}"
-                :fileName="editors[key].fileName"
-                :lines="editors[key].lines"
-                :cursor="editors[key].cursor"
-                :autoChase="isChaseCursor"
-              />
-            </v-tabs-content>
-          </v-tabs-items>
+          <EditorBox
+            v-if="viewEditor"
+            :ref="viewEditor.fileName"
+            class="editor-box"
+            :style="{height: `${editorHeight}px`}"
+            :fileName="viewEditor.fileName"
+            :lines="viewEditor.lines"
+            :cursor="viewEditor.cursor"
+            :autoChase="isChaseCursor"
+          />
         </v-tabs>
       </v-content>
-      <!-- <v-footer color="indigo" app>
-        <span class="white--text">&copy; 2017</span>
-      </v-footer> -->
     </v-app>
   </div>
 </template>
@@ -129,6 +119,9 @@ export default {
   computed: {
     activeEditor () {
       return this.editors[this.activeEditorName]
+    },
+    viewEditor () {
+      return this.editors[this.viewEditorName]
     },
     editorKeyList () {
       return Object.keys(this.editors)
