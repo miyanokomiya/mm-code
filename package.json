@@ -6,19 +6,17 @@
   "private": true,
   "scripts": {
     "dev": "node build/dev-server.js",
-    "start":
-      "go-bindata-assetfs -debug=true -pkg server dist/... && npm run go-move && npm run dev",
+    "start": "go-bindata-assetfs -debug=true -pkg server dist/... && npm run go-move && npm run dev",
     "build": "node build/build.js && npm run go-build",
-    "unit":
-      "cross-env BABEL_ENV=test karma start test/unit/karma.conf.js --single-run",
+    "unit": "cross-env BABEL_ENV=test karma start test/unit/karma.conf.js --single-run",
     "test": "npm run unit",
     "lint": "eslint --ext .js,.vue src test/unit/specs",
-    "go-build":
-      "go-bindata-assetfs -pkg server dist/... && npm run go-move && go build",
+    "go-build": "go-bindata-assetfs -pkg server dist/... && npm run go-move && go build",
     "go-move": "mv -f ./bindata_assetfs.go ./server/bindata_assetfs.go"
   },
   "dependencies": {
     "prismjs": "^1.8.4",
+    "ress": "^1.2.2",
     "vue": "^2.5.2"
   },
   "devDependencies": {
@@ -90,5 +88,9 @@
     "node": ">= 4.0.0",
     "npm": ">= 3.0.0"
   },
-  "browserslist": ["> 1%", "last 2 versions", "not ie <= 8"]
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not ie <= 8"
+  ]
 }

@@ -3,6 +3,7 @@
 import Vue from 'vue'
 import App from './App'
 
+import 'ress'
 import './commons/prismConfig'
 
 Vue.config.productionTip = false

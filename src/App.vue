@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <h3>{{fileName || 'NO FILE'}}</h3>
-    <div>
+    <div ref="editorWrapper" class="editor-wrapper">
       <div class="line-count-wrapper">
         <ul class="line-count">
           <li v-for="(l, i) in lines" :key="i">
@@ -11,9 +11,7 @@
           </li>
         </ul>
       </div>
-      <div ref="codeWrapper" class="code-wrapper">
-        <pre :class="`language-${languageType}`"><code v-html="prismHtml" :class="`language-${languageType}`"></code></pre>
-      </div>
+      <pre :class="`language-${languageType}`"><code v-html="prismHtml" :class="`language-${languageType}`"></code></pre>
     </div>
   </div>
 </template>
@@ -54,13 +52,15 @@ export default {
     this.initSocket()
   },
   updated () {
-    const width = this.$refs.codeWrapper.clientWidth
-    if (this.$refs.lineHighlight.length > 0) {
-      this.$refs.lineHighlight[0].style.width = `${width + 30}px`
-    }
-    if (this.$refs.cursor.length > 0) {
-      // フォントサイズとパディングを考慮して絶妙な位置に調整
-      this.$refs.cursor[0].style.left = `${16 + this.cursor.column * 9.6}px`
+    if (this.$refs.editorWrapper) {
+      const width = this.$refs.editorWrapper.scrollWidth
+      if (this.$refs.lineHighlight.length > 0) {
+        this.$refs.lineHighlight[0].style.width = `${width + 30}px`
+      }
+      if (this.$refs.cursor.length > 0) {
+        // フォントサイズとパディングを考慮して絶妙な位置に調整
+        this.$refs.cursor[0].style.left = `${13 + this.cursor.column * 9.6}px`
+      }
     }
   },
   methods: {
@@ -171,10 +171,23 @@ $back-color: #272822;
   margin-top: 20px;
 }
 
+.editor-wrapper {
+  overflow: auto;
+  background-color: $back-color;
+
+  pre[class*="language-"] {
+    overflow: initial;
+    margin: 0;
+    padding: 1em 24px 1.8em 44px;
+  }
+  code[class*="language-"] {
+    padding-right: 24px;
+  }
+}
+
 .line-count-wrapper {
   float: left;
   padding: 20px 0 0 0;
-  background-color: $back-color;
   color: #FFF;
   border-radius: 4px;
 }
@@ -213,7 +226,7 @@ $back-color: #272822;
   border-left: 2px solid #fff;
   margin: 0 -2px 0 0;
   display: inline-block;
-  height: 1.2rem;
+  height: 1rem;
   vertical-align: middle;
 
   -webkit-animation:blink 0.5s ease-in-out infinite alternate;
@@ -237,11 +250,5 @@ $back-color: #272822;
     51% {opacity:0;}
     100% {opacity:0;}
   }
-}
-
-.code-wrapper {
-  padding: 0 0 20px 0;
-  background-color: $back-color;
-  border-radius: 4px;
 }
 </style>
