@@ -16,7 +16,7 @@
   <EditorBox
     v-if="viewEditor"
     :ref="viewEditor.fileName"
-    :style="{height: `${editorHeight}px`}"
+    :style="{height: `${editorHeightWithoutTab}px`}"
     :fileName="viewEditor.fileName"
     :lines="viewEditor.lines"
     :cursor="viewEditor.cursor"
@@ -72,6 +72,9 @@ export default {
     }
   },
   computed: {
+    editorHeightWithoutTab () {
+      return this.editorHeight - 36
+    },
     viewEditorTabKey: {
       get () {
         return this.viewEditor.fileName ? `${this.uniqueID}_${this.viewEditor.fileName}` : null
@@ -98,4 +101,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.tabs__bar {
+  height: 36px;
+}
 </style>

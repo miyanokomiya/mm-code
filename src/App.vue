@@ -38,7 +38,7 @@
             <v-list-tile-content>
               <v-list-tile-title>
                 <v-checkbox
-                  label="Chase Scroll"
+                  label="Chase Cursor"
                   v-model="isChaseCursor"
                 />
               </v-list-tile-title>
@@ -120,7 +120,7 @@ export default {
       if (this.splitViewCount < 3) {
         return this.editorHeight
       } else {
-        return (this.editorHeight - 36) / 2
+        return (this.editorHeight) / 2
       }
     },
     isChaseFile: {
@@ -182,7 +182,7 @@ export default {
       return fileName || this.activeEditorName
     },
     onResize () {
-      const height = window.innerHeight - (36 + 36)
+      const height = window.innerHeight - 36
       this.editorHeight = height
     },
     initSocket () {
@@ -304,9 +304,6 @@ export default {
   border-left: none;
 }
 
-.tabs__bar {
-  height: 36px;
-}
 .tabs__item, .btn__content {
   text-transform: none;
 }
