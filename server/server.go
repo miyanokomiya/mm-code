@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html"
 	"io"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -32,7 +33,8 @@ func Run() {
 	m.HandleConnect(connect)
 	m.HandleDisconnect(disConnect)
 
-	fmt.Println(http.ListenAndServe(":8090", router))
+	log.Print("server started, port :8090")
+	log.Print(http.ListenAndServe(":8090", router))
 }
 
 func readAssets(path string) (string, error) {
@@ -56,11 +58,13 @@ func connect(s *melody.Session) {
 	s.Set("id", u1)
 	ret := &connection{Connection: s, ID: u1}
 	socketMap[u1] = ret
+	log.Print("new-connect id:", u1)
 }
 
 func disConnect(s *melody.Session) {
 	id := getID(s)
 	delete(socketMap, id)
+	log.Print("dis-connect id:", id)
 }
 
 func getID(s *melody.Session) string {
@@ -85,7 +89,7 @@ func echo(s *melody.Session, msg []byte) {
 	case "join":
 		data := new(joinRequest)
 		if err := json.Unmarshal(jsonBytes, data); err != nil {
-			fmt.Println("JSON Unmarshal error:", err)
+			log.Print("JSON Unmarshal error:", err)
 			return
 		}
 		join(s, data)
@@ -93,7 +97,7 @@ func echo(s *melody.Session, msg []byte) {
 	case "line":
 		data := new(oneLine)
 		if err := json.Unmarshal(jsonBytes, data); err != nil {
-			fmt.Println("JSON Unmarshal error:", err)
+			log.Print("JSON Unmarshal error:", err)
 			return
 		}
 		updateLine(data)
@@ -101,7 +105,7 @@ func echo(s *melody.Session, msg []byte) {
 	case "updates":
 		data := new(updates)
 		if err := json.Unmarshal(jsonBytes, data); err != nil {
-			fmt.Println("JSON Unmarshal error:", err)
+			log.Print("JSON Unmarshal error:", err)
 			return
 		}
 		updateLines(data)
@@ -109,7 +113,7 @@ func echo(s *melody.Session, msg []byte) {
 	case "follow":
 		data := new(followLatestRequest)
 		if err := json.Unmarshal(jsonBytes, data); err != nil {
-			fmt.Println("JSON Unmarshal error:", err)
+			log.Print("JSON Unmarshal error:", err)
 			return
 		}
 		followLatest(data)
@@ -150,7 +154,7 @@ func join(s *melody.Session, data *joinRequest) {
 		ID:   getID(s),
 	})
 	if err != nil {
-		fmt.Println("JSON Marshal error:", err)
+		log.Print("JSON Marshal error:", err)
 		return
 	}
 	m.BroadcastOthers(jsonBytes, s)
@@ -164,7 +168,7 @@ func followLatest(data *followLatestRequest) {
 		Text:     data.Text,
 	})
 	if err != nil {
-		fmt.Println("JSON Marshal error:", err)
+		log.Print("JSON Marshal error:", err)
 		return
 	}
 
@@ -188,7 +192,7 @@ func updateLine(data *oneLine) {
 		L:    data.L,
 	})
 	if err != nil {
-		fmt.Println("JSON Marshal error:", err)
+		log.Print("JSON Marshal error:", err)
 		return
 	}
 	m.Broadcast(jsonBytes)
@@ -201,7 +205,7 @@ func updateLines(data *updates) {
 		Updates: data.Updates,
 	})
 	if err != nil {
-		fmt.Println("JSON Marshal error:", err)
+		log.Print("JSON Marshal error:", err)
 		return
 	}
 	m.Broadcast(jsonBytes)
