@@ -1,6 +1,6 @@
 <template>
   <div ref="editorWrapper" class="editor-wrapper">
-    <div class="line-count-wrapper">
+    <!-- <div class="line-count-wrapper">
       <ul class="line-count">
         <li class="line" v-for="(l, i) in lines" :key="i">
           <span ref="lineHighlight" v-if="i === cursor.row" class="line-highlight"></span>
@@ -8,19 +8,34 @@
           <span>{{i + 1}}</span>
         </li>
       </ul>
-    </div>
-    <pre :class="`language-${languageType}`"><code v-html="prismHtml" :class="`language-${languageType}`"></code></pre>
+    </div> -->
+    <!-- <pre :class="`language-${languageType}`"><code v-html="prismHtml" :class="`language-${languageType}`"></code></pre> -->
+    <!-- <editor :content="text" :sync="true" :height="`${editorHeight}px`" theme="monokai" :options="{fontSize: '14px', readOnly: true}"></editor> -->
+    <div ref="editor" :style="{height: `${editorHeight}px`}"></div>
   </div>
 </template>
 
 <script>
 import Prism from 'prismjs'
 import {languageType} from '@/commons/prismConfig'
+import ace from 'brace'
+import 'brace/mode/javascript'
+import 'brace/mode/html'
+import 'brace/theme/monokai'
 
 const SPACE_OF_TAB = '  '
 
 export default {
+  data () {
+    return {
+      editor: null
+    }
+  },
   props: {
+    editorHeight: {
+      type: Number,
+      default: 300
+    },
     fileName: {
       type: String,
       default: 'no name'
@@ -45,6 +60,14 @@ export default {
     }
   },
   computed: {
+    text: {
+      get () {
+        return this.lines.join('\n')
+      },
+      set (val) {
+        console.log(val)
+      }
+    },
     prismHtml () {
       const prismHtml = this.filterPrism(this.convertedText)
       return prismHtml
@@ -67,10 +90,32 @@ export default {
     }
   },
   mounted () {
+    this.editor = ace.edit(this.$refs.editor)
+    const options = {
+      readOnly: true,
+      fontSize: '14px'
+    }
+    this.editor.$blockScrolling = Infinity
+    this.editor.getSession().setMode('ace/mode/' + this.languageType)
+    this.editor.setTheme('ace/theme/monokai')
+    this.editor.setValue(this.text, 1)
+    this.editor.setOptions(options)
+    this.editor.on('change', () => {
+    })
+
     this.adjustAll()
   },
-  updated () {
-    this.adjustAll()
+  watch: {
+    text (to, from) {
+      this.editor.setValue(to, 1)
+      this.adjustAll()
+    },
+    cursor: {
+      handler () {
+        this.adjustAll()
+      },
+      deep: true
+    }
   },
   methods: {
     filterPrism (text) {
@@ -82,57 +127,8 @@ export default {
       return ret
     },
     adjustAll () {
-      if (this.$refs.editorWrapper) {
-        const width = this.$refs.editorWrapper.scrollWidth
-        if (this.$refs.lineHighlight.length > 0) {
-          this.$refs.lineHighlight[0].style.width = `${width}px`
-        }
-        if (this.$refs.cursor.length > 0) {
-          // フォントサイズとパディングを考慮して絶妙な位置に調整
-          this.$refs.cursor[0].style.left = `${13 + this.cursorColumnIndex * 9.6}px`
-        }
-      }
-      if (this.isChaseCursor) {
-        this.adjustScroll()
-      }
-    },
-    adjustScroll () {
-      if (this.$refs.editorWrapper) {
-        if (this.$refs.lineHighlight.length > 0) {
-          const lineHighlight = this.$refs.lineHighlight[0]
-          const parent = lineHighlight.parentElement
-          const top = parent.offsetTop
-          const current = this.$refs.editorWrapper.scrollTop
-          const viewHeight = this.$refs.editorWrapper.offsetHeight
-          const noMoveRange = viewHeight * 2 / 5
-          const adjustRange = viewHeight * 3 / 4
-          const nextTop = top - viewHeight * 2 / 5
-          const dif = nextTop - current
-          if (Math.abs(dif) < noMoveRange / 2) {
-          } else if (Math.abs(nextTop - current) < adjustRange / 2) {
-            this.$refs.editorWrapper.scrollTop += (dif / Math.abs(dif)) * 24
-          } else {
-            this.$refs.editorWrapper.scrollTop = nextTop
-          }
-
-          if (this.$refs.cursor.length > 0) {
-            const cursor = this.$refs.cursor[0]
-            const left = cursor.offsetLeft
-            const current = this.$refs.editorWrapper.scrollLeft
-            const viewWidth = this.$refs.editorWrapper.offsetWidth
-            const noMoveRange = viewWidth * 2 / 5
-            const adjustRange = viewWidth * 3 / 4
-            const nextLeft = left - viewWidth / 2
-            const dif = nextLeft - current
-            if (Math.abs(dif) < noMoveRange / 2) {
-            } else if (Math.abs(nextLeft - current) < adjustRange / 2) {
-              // スクロール１文字分がぴったり合わないが許容範囲
-              this.$refs.editorWrapper.scrollLeft += (dif / Math.abs(dif)) * 9.993
-            } else {
-              this.$refs.editorWrapper.scrollLeft = nextLeft
-            }
-          }
-        }
+      if (this.editor) {
+        this.editor.gotoLine(this.cursor.row + 1, this.cursor.column, true)
       }
     }
   }
@@ -140,96 +136,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-$back-color: #272822;
-
 .editor-wrapper {
-  overflow: auto;
-  background-color: $back-color;
-
-  pre[class*="language-"] {
-    overflow: initial;
-    margin: 0;
-    padding: 1em 24px 1.8em 44px;
-  }
-  code[class*="language-"] {
-    padding-right: 24px;
-    background-color: inherit;
-    font-size: 16px;
-    font-weight: 100;
-    letter-spacing: 0;
-    box-shadow: none;
-  }
-}
-
-.line-count-wrapper {
-  float: left;
-  padding: 18px 0 0 0;
-  color: #FFF;
-  border-radius: 4px;
-}
-
-.line-count {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  font-size: 16px;
-}
-
-.line-count li.line {
-  width: 30px;
-  text-align: right;
-  font-size: 0.9rem;
-  line-height: 1.5;
-  height: 24px;
-  position: relative;
-  margin-top: 0;
-}
-
-.line-highlight {
-  display: inline-block;
-  position: absolute;
-  height: 100%;
-  width: 300px;
-  top: -2px;
-  left: 0;
-  pointer-events: none;
-  // background-color: rgba(0, 0, 255, 0.2);
-  border-bottom: 2px solid rgba(255, 255, 255, 0.8);
-}
-
-.cursor {
-  float: right;
-  position: relative;
-  border-left: 2px solid #fff;
-  margin: -2px -2px 0 0;
-  display: inline-block;
-  height: 100%;
-  vertical-align: middle;
-
-  -webkit-animation:blink 0.5s ease-in-out infinite alternate;
-  -moz-animation:blink 0.5s ease-in-out infinite alternate;
-  animation:blink 0.5s ease-in-out infinite alternate;
-  @-webkit-keyframes blink{
-    0% {opacity:1;}
-    50% {opacity:1;}
-    51% {opacity:0;}
-    100% {opacity:0;}
-  }
-  @-moz-keyframes blink{
-    0% {opacity:1;}
-    50% {opacity:1;}
-    51% {opacity:0;}
-    100% {opacity:0;}
-  }
-  @keyframes blink{
-    0% {opacity:1;}
-    50% {opacity:1;}
-    51% {opacity:0;}
-    100% {opacity:0;}
-  }
-}
-
-code:after, code:before, kbd:after, kbd:before {
-  content: "";
+  text-align: left;
 }
 </style>

@@ -16,7 +16,7 @@
   <EditorBox
     v-if="viewEditor"
     :ref="viewEditor.fileName"
-    :style="{height: `${editorHeightWithoutTab}px`}"
+    :editorHeight="editorHeightWithoutTab"
     :fileName="viewEditor.fileName"
     :lines="viewEditor.lines"
     :cursor="viewEditor.cursor"

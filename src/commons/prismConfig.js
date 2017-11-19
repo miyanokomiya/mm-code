@@ -20,7 +20,7 @@ export const languageType = fileName => {
       return 'javascript'
     case 'vue':
     case 'html':
-      return 'markup'
+      return 'html'
     case 'md':
       return 'markdown'
     case 'rb':

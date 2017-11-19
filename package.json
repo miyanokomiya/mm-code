@@ -15,6 +15,7 @@
     "go-move": "mv -f ./bindata_assetfs.go ./server/bindata_assetfs.go"
   },
   "dependencies": {
+    "brace": "^0.10.0",
     "prismjs": "^1.8.4",
     "ress": "^1.2.2",
     "vue": "^2.5.2",
