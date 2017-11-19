@@ -59,15 +59,16 @@
       <v-content>
         <v-layout row wrap>
           <v-flex
-            :xs3="currentViewFileList.length === 4"
-            :xs4="currentViewFileList.length === 3"
-            :xs6="currentViewFileList.length === 2"
-            :xs12="currentViewFileList.length === 1"
             v-for="(fileName, i) in currentViewFileList"
-            :key="i">
+            :key="i"
+            :xs6="currentViewFileList.length === 2 || (currentViewFileList.length === 3 && i !== 2) || currentViewFileList.length === 4"
+            :xs12="currentViewFileList.length === 1 || (currentViewFileList.length === 3 && i === 2)"
+          >
             <EditorContainer
               v-if="getViewFileForEditor(i)"
-              :editorHeight="editorHeight"
+              class="editor-container"
+              :class="{'editor-container-right': i % 2 === 1}"
+              :editorHeight="adjustedEditorHeight"
               :editorKeyList="editorKeyList"
               :viewEditor="editors[getViewFileForEditor(i)]"
               :isChaseCursor="i === 0 ? isChaseCursor : false"
@@ -102,7 +103,7 @@ export default {
         isChaseCursor: true,
         splitViewCount: 1
       },
-      viewFileList: ['', '', '', '', '', '']
+      viewFileList: ['', '', '', '']
     }
   },
   computed: {
@@ -114,6 +115,13 @@ export default {
     },
     currentViewFileList () {
       return this.viewFileList.slice(0, this.settings.splitViewCount)
+    },
+    adjustedEditorHeight () {
+      if (this.splitViewCount < 3) {
+        return this.editorHeight
+      } else {
+        return this.editorHeight / 2 - 24
+      }
     },
     isChaseFile: {
       get () {
@@ -288,8 +296,12 @@ export default {
   text-align: center;
   color: #2c3e50;
 }
-.editor-box {
-  border: 1px solid #fff;
+.editor-container {
+  border-left: 1px solid #fff;
+  border-right: 1px solid #fff;
+}
+.editor-container.editor-container-right {
+  border-left: none;
 }
 
 .tabs__item, .btn__content {

@@ -16,7 +16,6 @@
   <EditorBox
     v-if="viewEditor"
     :ref="viewEditor.fileName"
-    class="editor-box"
     :style="{height: `${editorHeight}px`}"
     :fileName="viewEditor.fileName"
     :lines="viewEditor.lines"
