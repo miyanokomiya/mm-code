@@ -18,7 +18,6 @@ import Prism from 'prismjs'
 import {languageType} from '@/commons/prismConfig'
 
 export default {
-  name: 'this',
   props: {
     fileName: {
       type: String,
@@ -55,20 +54,11 @@ export default {
       return languageType(this.fileName)
     }
   },
+  mounted () {
+    this.adjustAll()
+  },
   updated () {
-    if (this.$refs.editorWrapper) {
-      const width = this.$refs.editorWrapper.scrollWidth
-      if (this.$refs.lineHighlight.length > 0) {
-        this.$refs.lineHighlight[0].style.width = `${width}px`
-      }
-      if (this.$refs.cursor.length > 0) {
-        // フォントサイズとパディングを考慮して絶妙な位置に調整
-        this.$refs.cursor[0].style.left = `${15 + this.cursor.column * 9.6}px`
-      }
-    }
-    if (this.autoChase) {
-      this.adjustScroll()
-    }
+    this.adjustAll()
   },
   methods: {
     filterPrism (text) {
@@ -78,6 +68,21 @@ export default {
         ret = Prism.highlight(text, type)
       }
       return ret
+    },
+    adjustAll () {
+      if (this.$refs.editorWrapper) {
+        const width = this.$refs.editorWrapper.scrollWidth
+        if (this.$refs.lineHighlight.length > 0) {
+          this.$refs.lineHighlight[0].style.width = `${width}px`
+        }
+        if (this.$refs.cursor.length > 0) {
+          // フォントサイズとパディングを考慮して絶妙な位置に調整
+          this.$refs.cursor[0].style.left = `${13 + this.cursor.column * 9.6}px`
+        }
+      }
+      if (this.autoChase) {
+        this.adjustScroll()
+      }
     },
     adjustScroll () {
       if (this.$refs.editorWrapper) {
@@ -89,11 +94,11 @@ export default {
           const viewHeight = this.$refs.editorWrapper.offsetHeight
           const noMoveRange = viewHeight * 2 / 5
           const adjustRange = viewHeight * 3 / 4
-          const nextTop = top - noMoveRange
+          const nextTop = top - noMoveRange * 1.2
           const dif = nextTop - current
           if (Math.abs(dif) < noMoveRange / 2) {
           } else if (Math.abs(nextTop - current) < adjustRange / 2) {
-            this.$refs.editorWrapper.scrollTop += (dif / Math.abs(dif)) * 22
+            this.$refs.editorWrapper.scrollTop += (dif / Math.abs(dif)) * 24
           } else {
             this.$refs.editorWrapper.scrollTop = nextTop
           }
@@ -104,7 +109,7 @@ export default {
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 $back-color: #272822;
 
 .editor-wrapper {

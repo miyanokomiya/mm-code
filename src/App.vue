@@ -46,47 +46,35 @@
           </v-list-tile>
         </v-list>
       </v-navigation-drawer>
-      <v-toolbar color="indigo" dark fixed app>
+      <v-toolbar color="indigo" height="36px" dark fixed app>
         <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
         <v-toolbar-title>
-          <!-- {{sliceFileName(activeEditorName)}} -->
-          <v-menu offset-y>
-            <v-btn color="primary" dark slot="activator">
-              {{sliceFileName(viewEditorName)}}
-              <v-icon>arrow_drop_down</v-icon>
-            </v-btn>
-            <v-list>
-              <v-list-tile v-for="key in editorKeyList.concat().sort()" :key="key" @click="viewEditorName = key" v-if="key !== viewEditorName">
-                <v-list-tile-title>{{sliceFileName(key)}}</v-list-tile-title>
-              </v-list-tile>
-            </v-list>
-          </v-menu>
         </v-toolbar-title>
+        <div class="d-flex align-center" style="margin-left: auto">
+          <v-btn icon @click="splitViewCount = (splitViewCount) % 4 + 1">
+            <v-icon>chrome_reader_mode</v-icon>
+          </v-btn>
+        </div>
       </v-toolbar>
       <v-content>
-        <v-tabs v-model="viewEditorTabKey" :scrollable="false">
-          <v-tabs-bar class="cyan" dark>
-            <v-tabs-item
-              v-for="key in editorKeyList"
-              :key="key"
-              :href="'#editor_' + key"
-              ripple
-            >
-              {{sliceFileName(key)}}
-            </v-tabs-item>
-            <v-tabs-slider color="yellow"></v-tabs-slider>
-          </v-tabs-bar>
-          <EditorBox
-            v-if="viewEditor"
-            :ref="viewEditor.fileName"
-            class="editor-box"
-            :style="{height: `${editorHeight}px`}"
-            :fileName="viewEditor.fileName"
-            :lines="viewEditor.lines"
-            :cursor="viewEditor.cursor"
-            :autoChase="isChaseCursor"
-          />
-        </v-tabs>
+        <v-layout row wrap>
+          <v-flex
+            :xs3="currentViewFileList.length === 4"
+            :xs4="currentViewFileList.length === 3"
+            :xs6="currentViewFileList.length === 2"
+            :xs12="currentViewFileList.length === 1"
+            v-for="(fileName, i) in currentViewFileList"
+            :key="i">
+            <EditorContainer
+              v-if="getViewFileForEditor(i)"
+              :editorHeight="editorHeight"
+              :editorKeyList="editorKeyList"
+              :viewEditor="editors[getViewFileForEditor(i)]"
+              :isChaseCursor="i === 0 ? isChaseCursor : false"
+              @changeFile="val => setViewFileForEditor(i, val)"
+            />
+          </v-flex>
+        </v-layout>
       </v-content>
     </v-app>
   </div>
@@ -94,47 +82,38 @@
 
 <script>
 import Vue from 'vue'
-import EditorBox from './components/EditorBox'
+import EditorContainer from './components/EditorContainer'
 
 let websocket = null
 let connectionLoop = null
 
 export default {
   components: {
-    EditorBox
+    EditorContainer
   },
   data () {
     return {
       activeEditorName: null,
       editors: {},
       drawer: false,
-      viewEditorName: null,
       editorHeight: 300,
       settings: {
         isChaseFile: true,
-        isChaseCursor: true
-      }
+        isChaseCursor: true,
+        splitViewCount: 1
+      },
+      viewFileList: ['', '', '', '', '', '']
     }
   },
   computed: {
     activeEditor () {
       return this.editors[this.activeEditorName]
     },
-    viewEditor () {
-      return this.editors[this.viewEditorName]
-    },
     editorKeyList () {
       return Object.keys(this.editors)
     },
-    viewEditorTabKey: {
-      get () {
-        return this.viewEditorName ? `editor_${this.viewEditorName}` : null
-      },
-      set (val) {
-        if (typeof val === 'string') {
-          this.viewEditorName = val ? val.slice(7) : null
-        }
-      }
+    currentViewFileList () {
+      return this.viewFileList.slice(0, this.settings.splitViewCount)
     },
     isChaseFile: {
       get () {
@@ -151,6 +130,14 @@ export default {
       set (val) {
         this.settings.isChaseCursor = val
       }
+    },
+    splitViewCount: {
+      get () {
+        return this.settings.splitViewCount
+      },
+      set (val) {
+        this.settings.splitViewCount = val
+      }
     }
   },
   watch: {
@@ -159,29 +146,35 @@ export default {
         localStorage.setItem('settings', JSON.stringify(to))
       },
       deep: true
+    },
+    activeEditorName (to, from) {
+      if (this.settings.isChaseFile) {
+        this.setViewFileForEditor(0, to)
+      }
     }
   },
-  mounted () {
+  created () {
     this.initSocket()
+    this.onResize()
     const settings = localStorage.getItem('settings')
     if (settings) {
       try {
-        this.settings = JSON.parse(settings)
+        this.settings = Object.assign({}, this.settings, JSON.parse(settings))
       } catch (e) {
         console.log('Failed to load settings from local-strage.')
       }
     }
   },
   methods: {
-    sliceFileName (name) {
-      if (name) {
-        return name.slice(name.lastIndexOf('/') + 1)
-      } else {
-        return null
-      }
+    setViewFileForEditor (index, val) {
+      Vue.set(this.viewFileList, index, val)
+    },
+    getViewFileForEditor (index) {
+      const fileName = this.viewFileList[index]
+      return fileName || this.activeEditorName
     },
     onResize () {
-      const height = window.innerHeight - (56 + 48)
+      const height = window.innerHeight - (36 + 48)
       this.editorHeight = height
     },
     initSocket () {
@@ -219,9 +212,6 @@ export default {
         // ファイル取得
         if (jsonData.fileName) {
           this.activeEditorName = jsonData.fileName
-          if (!this.viewEditorName || this.settings.isChaseFile) {
-            this.viewEditorName = this.activeEditorName
-          }
           Vue.set(this.editors, jsonData.fileName, {
             fileName: jsonData.fileName,
             lines: jsonData.text.split('\n'),
@@ -233,9 +223,6 @@ export default {
         }
       } else if (type === 'line') {
         // 1行更新
-        if (this.settings.isChaseFile) {
-          this.viewEditorName = this.activeEditorName
-        }
         const editor = this.activeEditor
         if (editor) {
           Vue.set(editor.lines, parseInt(jsonData.r), jsonData.l)
@@ -244,9 +231,6 @@ export default {
         }
       } else if (type === 'updates') {
         // 複数行更新
-        if (this.settings.isChaseFile) {
-          this.viewEditorName = this.activeEditorName
-        }
         const editor = this.activeEditor
         if (editor) {
           jsonData.updates.forEach((update) => {
@@ -303,6 +287,9 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
+}
+.editor-box {
+  border: 1px solid #fff;
 }
 
 .tabs__item, .btn__content {
