@@ -89,7 +89,7 @@ export default {
         }
         if (this.$refs.cursor.length > 0) {
           // フォントサイズとパディングを考慮して絶妙な位置に調整
-          this.$refs.cursor[0].style.left = `${13 + this.cursorColumnIndex * 9.6}px`
+          this.$refs.cursor[0].style.left = `${13 + this.cursorColumnIndex * 7.8}px`
         }
       }
       if (this.isChaseCursor) {
@@ -110,7 +110,7 @@ export default {
           const dif = nextTop - current
           if (Math.abs(dif) < noMoveRange / 2) {
           } else if (Math.abs(nextTop - current) < adjustRange / 2) {
-            this.$refs.editorWrapper.scrollTop += (dif / Math.abs(dif)) * 24
+            this.$refs.editorWrapper.scrollTop += (dif / Math.abs(dif)) * 19
           } else {
             this.$refs.editorWrapper.scrollTop = nextTop
           }
@@ -127,7 +127,7 @@ export default {
             if (Math.abs(dif) < noMoveRange / 2) {
             } else if (Math.abs(nextLeft - current) < adjustRange / 2) {
               // スクロール１文字分がぴったり合わないが許容範囲
-              this.$refs.editorWrapper.scrollLeft += (dif / Math.abs(dif)) * 9.993
+              this.$refs.editorWrapper.scrollLeft += (dif / Math.abs(dif)) * 7.993
             } else {
               this.$refs.editorWrapper.scrollLeft = nextLeft
             }
@@ -154,7 +154,7 @@ $back-color: #272822;
   code[class*="language-"] {
     padding-right: 24px;
     background-color: inherit;
-    font-size: 16px;
+    font-size: 13px;
     font-weight: 100;
     letter-spacing: 0;
     box-shadow: none;
@@ -163,7 +163,7 @@ $back-color: #272822;
 
 .line-count-wrapper {
   float: left;
-  padding: 18px 0 0 0;
+  padding: 15px 0 0 0;
   color: #FFF;
   border-radius: 4px;
 }
@@ -172,7 +172,7 @@ $back-color: #272822;
   list-style: none;
   padding: 0;
   margin: 0;
-  font-size: 16px;
+  font-size: 12px;
 }
 
 .line-count li.line {
@@ -180,7 +180,7 @@ $back-color: #272822;
   text-align: right;
   font-size: 0.9rem;
   line-height: 1.5;
-  height: 24px;
+  height: 19px;
   position: relative;
   margin-top: 0;
 }
