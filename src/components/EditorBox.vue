@@ -9,13 +9,15 @@
         </li>
       </ul>
     </div>
-    <pre :class="`language-${languageType}`"><code v-html="prismHtml" :class="`language-${languageType} hljs`"></code></pre>
+    <pre :class="`language-${languageType}`"><code v-html="prismHtml" :class="`language-${languageType}`"></code></pre>
   </div>
 </template>
 
 <script>
 import Prism from 'prismjs'
 import {languageType} from '@/commons/prismConfig'
+
+const SPACE_OF_TAB = '  '
 
 export default {
   props: {
@@ -48,10 +50,20 @@ export default {
       return prismHtml
     },
     convertedText () {
-      return this.lines.join('\n')
+      const text = this.lines.join('\n')
+      const ret = text.replace(/\t/g, SPACE_OF_TAB)
+      return ret
     },
     languageType () {
       return languageType(this.fileName)
+    },
+    cursorColumnIndex () {
+      const orgColumn = this.cursor.column
+      // カーソル位置までの行内タブ文字数を数える
+      const lineBefore = this.lines[this.cursor.row].slice(0, orgColumn)
+      const count = (lineBefore.match(/\t/g) || []).length
+      // タブをスペース換算した分を補う
+      return orgColumn + count * (SPACE_OF_TAB.length - 1)
     }
   },
   mounted () {
@@ -77,7 +89,7 @@ export default {
         }
         if (this.$refs.cursor.length > 0) {
           // フォントサイズとパディングを考慮して絶妙な位置に調整
-          this.$refs.cursor[0].style.left = `${13 + this.cursor.column * 9.6}px`
+          this.$refs.cursor[0].style.left = `${13 + this.cursorColumnIndex * 9.6}px`
         }
       }
       if (this.isChaseCursor) {
@@ -194,26 +206,30 @@ $back-color: #272822;
   height: 100%;
   vertical-align: middle;
 
-  // -webkit-animation:blink 0.5s ease-in-out infinite alternate;
-  // -moz-animation:blink 0.5s ease-in-out infinite alternate;
-  // animation:blink 0.5s ease-in-out infinite alternate;
-  // @-webkit-keyframes blink{
-  //   0% {opacity:1;}
-  //   50% {opacity:1;}
-  //   51% {opacity:0;}
-  //   100% {opacity:0;}
-  // }
-  // @-moz-keyframes blink{
-  //   0% {opacity:1;}
-  //   50% {opacity:1;}
-  //   51% {opacity:0;}
-  //   100% {opacity:0;}
-  // }
-  // @keyframes blink{
-  //   0% {opacity:1;}
-  //   50% {opacity:1;}
-  //   51% {opacity:0;}
-  //   100% {opacity:0;}
-  // }
+  -webkit-animation:blink 0.5s ease-in-out infinite alternate;
+  -moz-animation:blink 0.5s ease-in-out infinite alternate;
+  animation:blink 0.5s ease-in-out infinite alternate;
+  @-webkit-keyframes blink{
+    0% {opacity:1;}
+    50% {opacity:1;}
+    51% {opacity:0;}
+    100% {opacity:0;}
+  }
+  @-moz-keyframes blink{
+    0% {opacity:1;}
+    50% {opacity:1;}
+    51% {opacity:0;}
+    100% {opacity:0;}
+  }
+  @keyframes blink{
+    0% {opacity:1;}
+    50% {opacity:1;}
+    51% {opacity:0;}
+    100% {opacity:0;}
+  }
+}
+
+code:after, code:before, kbd:after, kbd:before {
+  content: "";
 }
 </style>
