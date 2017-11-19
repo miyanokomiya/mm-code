@@ -100,7 +100,10 @@ export default {
     this.editor.setTheme('ace/theme/monokai')
     this.editor.setValue(this.text, 1)
     this.editor.setOptions(options)
-    this.editor.on('change', () => {
+    this.editor.getSelection().on('changeCursor', (e, selection) => {
+      if (selection.lead.row !== this.cursor.row || selection.lead.column !== this.cursor.column) {
+        this.adjustAll()
+      }
     })
 
     this.adjustAll()
@@ -127,7 +130,7 @@ export default {
       return ret
     },
     adjustAll () {
-      if (this.editor) {
+      if (this.isChaseCursor && this.editor) {
         this.editor.gotoLine(this.cursor.row + 1, this.cursor.column, true)
       }
     }
@@ -138,5 +141,8 @@ export default {
 <style lang="scss" scoped>
 .editor-wrapper {
   text-align: left;
+}
+.ace_gutter-cell.ace_error, .ace_gutter-cell.ace_info {
+  display: none;
 }
 </style>
