@@ -20,7 +20,7 @@
     :fileName="viewEditor.fileName"
     :lines="viewEditor.lines"
     :cursor="viewEditor.cursor"
-    :autoChase="isChaseCursor"
+    :isChaseCursor="isChaseCursor"
   />
 </div>
 </template>

@@ -37,7 +37,7 @@ export default {
         default: 0
       }
     },
-    autoChase: {
+    isChaseCursor: {
       type: Boolean,
       default: true
     }
@@ -80,7 +80,7 @@ export default {
           this.$refs.cursor[0].style.left = `${13 + this.cursor.column * 9.6}px`
         }
       }
-      if (this.autoChase) {
+      if (this.isChaseCursor) {
         this.adjustScroll()
       }
     },
@@ -94,13 +94,31 @@ export default {
           const viewHeight = this.$refs.editorWrapper.offsetHeight
           const noMoveRange = viewHeight * 2 / 5
           const adjustRange = viewHeight * 3 / 4
-          const nextTop = top - noMoveRange * 1.2
+          const nextTop = top - viewHeight * 2 / 5
           const dif = nextTop - current
           if (Math.abs(dif) < noMoveRange / 2) {
           } else if (Math.abs(nextTop - current) < adjustRange / 2) {
             this.$refs.editorWrapper.scrollTop += (dif / Math.abs(dif)) * 24
           } else {
             this.$refs.editorWrapper.scrollTop = nextTop
+          }
+
+          if (this.$refs.cursor.length > 0) {
+            const cursor = this.$refs.cursor[0]
+            const left = cursor.offsetLeft
+            const current = this.$refs.editorWrapper.scrollLeft
+            const viewWidth = this.$refs.editorWrapper.offsetWidth
+            const noMoveRange = viewWidth * 2 / 5
+            const adjustRange = viewWidth * 3 / 4
+            const nextLeft = left - viewWidth / 2
+            const dif = nextLeft - current
+            if (Math.abs(dif) < noMoveRange / 2) {
+            } else if (Math.abs(nextLeft - current) < adjustRange / 2) {
+              // スクロール１文字分がぴったり合わないが許容範囲
+              this.$refs.editorWrapper.scrollLeft += (dif / Math.abs(dif)) * 9.993
+            } else {
+              this.$refs.editorWrapper.scrollLeft = nextLeft
+            }
           }
         }
       }
@@ -176,26 +194,26 @@ $back-color: #272822;
   height: 100%;
   vertical-align: middle;
 
-  -webkit-animation:blink 0.5s ease-in-out infinite alternate;
-  -moz-animation:blink 0.5s ease-in-out infinite alternate;
-  animation:blink 0.5s ease-in-out infinite alternate;
-  @-webkit-keyframes blink{
-    0% {opacity:1;}
-    50% {opacity:1;}
-    51% {opacity:0;}
-    100% {opacity:0;}
-  }
-  @-moz-keyframes blink{
-    0% {opacity:1;}
-    50% {opacity:1;}
-    51% {opacity:0;}
-    100% {opacity:0;}
-  }
-  @keyframes blink{
-    0% {opacity:1;}
-    50% {opacity:1;}
-    51% {opacity:0;}
-    100% {opacity:0;}
-  }
+  // -webkit-animation:blink 0.5s ease-in-out infinite alternate;
+  // -moz-animation:blink 0.5s ease-in-out infinite alternate;
+  // animation:blink 0.5s ease-in-out infinite alternate;
+  // @-webkit-keyframes blink{
+  //   0% {opacity:1;}
+  //   50% {opacity:1;}
+  //   51% {opacity:0;}
+  //   100% {opacity:0;}
+  // }
+  // @-moz-keyframes blink{
+  //   0% {opacity:1;}
+  //   50% {opacity:1;}
+  //   51% {opacity:0;}
+  //   100% {opacity:0;}
+  // }
+  // @keyframes blink{
+  //   0% {opacity:1;}
+  //   50% {opacity:1;}
+  //   51% {opacity:0;}
+  //   100% {opacity:0;}
+  // }
 }
 </style>
